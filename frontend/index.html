@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Student-Teacher Portal</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #121824;
+            color: #ffffff;
+            margin: 0;
+            padding: 24px;
+            font-size: 18px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #ffffff;
+            font-size: 3rem;
+            margin-bottom: 0.25rem;
+        }
+        h2 {
+            font-size: 2rem;
+            margin-top: 36px;
+            margin-bottom: 12px;
+            color: #cbd5e1;
+        }
+        label {
+            display: block;
+            margin: 10px 0 4px;
+            font-size: 1.05rem;
+            color: #e2e8f0;
+        }
+        input, button {
+            width: 100%;
+            padding: 14px;
+            margin: 6px 0;
+            border-radius: 8px;
+            border: 1px solid #334155;
+            background-color: #1f293d;
+            color: #fff;
+            font-size: 1rem;
+        }
+        button {
+            background-color: #14b8a6;
+            cursor: pointer;
+            font-weight: bold;
+            border: none;
+        }
+        .section {
+            margin-bottom: 48px;
+        }
+        table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+            font-size: 1rem;
+        }
+        th, td {
+            padding: 14px;
+            text-align: left;
+            border-bottom: 1px solid #334155;
+        }
+        th {
+            color: #94a3b8;
+            font-size: 1.05rem;
+        }
+        .danger-btn {
+            background-color: #ef4444;
+            color: white;
+            padding: 10px 14px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.95rem;
+        }
+        .forms {
+            display: grid;
+            gap: 40px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Student & Teacher Portal</h1>
+        <div class="forms">
+            <section class="section">
+                <h2>Store Student Details</h2>
+                <form id="studentForm">
+                    <label for="name">Name</label>
+                    <input type="text" id="name" placeholder="Name" required />
+                    <label for="roll_no">Roll No</label>
+                    <input type="text" id="roll_no" placeholder="Roll No" required />
+                    <label for="className">Class</label>
+                    <input type="text" id="className" placeholder="Class" required />
+                    <button type="submit">Save Student</button>
+                </form>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Roll No</th>
+                            <th>Name</th>
+                            <th>Class</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="studentTableBody"></tbody>
+                </table>
+            </section>
+
+            <section class="section">
+                <h2>Store Teacher Details</h2>
+                <form id="teacherForm">
+                    <label for="teacherName">Name</label>
+                    <input type="text" id="teacherName" placeholder="Name" required />
+                    <label for="teacher_id">Teacher ID</label>
+                    <input type="text" id="teacher_id" placeholder="Teacher ID" required />
+                    <label for="subject">Subject</label>
+                    <input type="text" id="subject" placeholder="Subject" required />
+                    <button type="submit">Save Teacher</button>
+                </form>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Teacher ID</th>
+                            <th>Name</th>
+                            <th>Subject</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="teacherTableBody"></tbody>
+                </table>
+            </section>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:5000';
+
+        async function fetchStudents() {
+            const response = await fetch(`${API_URL}/api/students`);
+            const data = await response.json();
+            const tbody = document.getElementById('studentTableBody');
+            tbody.innerHTML = '';
+            data.forEach(student => {
+                const row = `<tr>
+                    <td>${student.roll_no}</td>
+                    <td>${student.name}</td>
+                    <td>${student.class_name}</td>
+                    <td><button class="danger-btn" onclick="deleteStudent('${student.roll_no}')">Delete</button></td>
+                </tr>`;
+                tbody.innerHTML += row;
+            });
+        }
+
+        async function fetchTeachers() {
+            const response = await fetch(`${API_URL}/api/teachers`);
+            const data = await response.json();
+            const tbody = document.getElementById('teacherTableBody');
+            tbody.innerHTML = '';
+            data.forEach(teacher => {
+                const row = `<tr>
+                    <td>${teacher.teacher_id}</td>
+                    <td>${teacher.name}</td>
+                    <td>${teacher.subject}</td>
+                    <td><button class="danger-btn" onclick="deleteTeacher('${teacher.teacher_id}')">Delete</button></td>
+                </tr>`;
+                tbody.innerHTML += row;
+            });
+        }
+
+        document.getElementById('studentForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const payload = {
+                name: document.getElementById('name').value,
+                roll_no: document.getElementById('roll_no').value,
+                class_name: document.getElementById('className').value
+            };
+            await fetch(`${API_URL}/api/students`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            fetchStudents();
+            document.getElementById('studentForm').reset();
+        });
+
+        document.getElementById('teacherForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const payload = {
+                name: document.getElementById('teacherName').value,
+                teacher_id: document.getElementById('teacher_id').value,
+                subject: document.getElementById('subject').value
+            };
+            await fetch(`${API_URL}/api/teachers`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            fetchTeachers();
+            document.getElementById('teacherForm').reset();
+        });
+
+        async function deleteStudent(rollNo) {
+            await fetch(`${API_URL}/api/students/${rollNo}`, { method: 'DELETE' });
+            fetchStudents();
+        }
+
+        async function deleteTeacher(teacherId) {
+            await fetch(`${API_URL}/api/teachers/${teacherId}`, { method: 'DELETE' });
+            fetchTeachers();
+        }
+
+        fetchStudents();
+        fetchTeachers();
+    </script>
+</body>
+</html>
